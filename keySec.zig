@@ -157,48 +157,32 @@ pub fn displayOne(data : [4]u8) void{
     std.debug.print("\n",.{});
 }
 
-pub fn assembleWord(data : [4][4]u8) [44][4]u8{ // https://legacy.cryptool.org/en/cto/aes-step-by-step -> check why is second row flipped
+pub fn assembleWord(data : [4][4]u8) [44][4]u8{
     var full_word : [44][4]u8 = undefined;
     for(0..4) |i|{
         full_word[i] = data[i];
     }
     for(4..44) |i|{
         if((i % 4) == 0){
-            full_word[i] = xorWords(subWord(rotWord(full_word[i - 1],1)),[4]u8{rCon(@intCast(i / 4)), 0x00, 0x00, 0x00});
-        }else{
+            full_word[i] = xorWords(xorWords(subWord(rotWord(full_word[i - 1],1)),[4]u8{rCon(@intCast(i / 4)), 0x00, 0x00, 0x00}),full_word[i - 4]);
+        }
+        else{
             full_word[i] = xorWords(full_word[i - 1],full_word[i - 4]);
         } 
-        // if(i==5){
-        //     const t : [4]u8 = full_word[4];
-        //     full_word[4] = full_word[5];
-        //     full_word[5] = t;
-        // }
     }
     return full_word;
 }
 
-// 72686538326b6438687269757339646e -> rhe82kd8hrius9dn
-pub fn main() void{
-    const key : []const u8 = "1212121212121212";
-    const data = devideKey(key);
-    const full = assembleWord(data);
-    displayWord(full);
-    // const ok : [4][4]u8  = [4][4]u8{
-    //     [4]u8{0x2b, 0x7e, 0x15, 0x16},
-    //     [4]u8{0x28, 0xae, 0xd2, 0xa6},
-    //     [4]u8{0xab, 0xf7, 0x97, 0x66},
-    //     [4]u8{0x76, 0x15, 0x13, 0x01},
-    //     };
-    // // const k : [4]u8 = xorWords(subWord(rotWord(ok[0],1)),[4]u8{rCon(@intCast(1)), 0x00, 0x00, 0x00});
-    // const kd : [4]u8 = xorWords(ok,ok[0]);
-
-    // displayOne(k);
-    // displayOne(kd);
-    // for(subWord(rotWord(ok[0],1))) |byte| {
-    //     std.debug.print("{x:0>2}",.{byte});
-    // }
-    // std.debug.print("\n",.{});
+pub fn expandKey(data : []const u8) [44][4]u8{
+    return assembleWord(devideKey(data));
 }
+
+// 72686538326b6438687269757339646e -> rhe82kd8hrius9dn
+// pub fn main() void{
+//     // const key : []const u8 = "1212121212121212";
+    
+//     displayWord(expandKey("1212121212121212"));
+// }
 
 
 
