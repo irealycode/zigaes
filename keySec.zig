@@ -108,7 +108,14 @@ pub fn subWord(data: [4]u8) [4]u8{
         word[i] = SBox[col + row];
     }
     return word;
-    
+}
+
+pub fn subMatrix(data: [4][4]u8) [4][4]u8{
+    var r : [4][4]u8 = undefined;
+    for(0..4) |i|{
+        r[i] = subWord(data[i]);
+    }
+    return r;
 }
 
 pub fn rCon(row: u8) u8{
@@ -131,6 +138,14 @@ pub fn xorWordandValue(data : [4]u8,value : u8) [4]u8{
     return r;
 }
 
+pub fn xorWordToValue(data : [4]u8) u8{
+    var r : u8 = data[0];
+    for (1..4) |i| {
+        r = data[i] ^ r;
+    }
+    return r;
+}
+
 pub fn xorWords(data : [4]u8,second : [4]u8) [4]u8{
     var r : [4]u8 = data;
     for (data,0..) |word, i| {
@@ -139,9 +154,10 @@ pub fn xorWords(data : [4]u8,second : [4]u8) [4]u8{
     return r;
 }
 
-pub fn displayWord(data : [44][4]u8) void{
+pub fn displayKey(data : [44][4]u8) void{
+    std.debug.print("expanded key: ",.{});
     for(data,0..) |bytes,i| {
-        if (i%4 == 0) std.debug.print(" : {d}\n",.{i});
+        if (i%4 == 0) std.debug.print("\n",.{});
         for(bytes) |byte|{
             std.debug.print("{x:0>2}", .{byte});
         }
@@ -151,6 +167,7 @@ pub fn displayWord(data : [44][4]u8) void{
 }
 
 pub fn displayMatrix(data : [4][4]u8) void{
+    
     for(data) |bytes|{
         for(bytes) |byte|{
             std.debug.print("{x:0>2} ", .{byte});
@@ -190,7 +207,7 @@ pub fn expandKey(data : []const u8) [44][4]u8{
 pub fn main() void{
     // const key : []const u8 = "1212121212121212";
     
-    displayWord(expandKey("1212121212121212"));
+    displayKey(expandKey("1212121212121212"));
 }
 
 
