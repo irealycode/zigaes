@@ -150,6 +150,15 @@ pub fn displayWord(data : [44][4]u8) void{
     std.debug.print("\n",.{});
 }
 
+pub fn displayMatrix(data : [4][4]u8) void{
+    for(data) |bytes|{
+        for(bytes) |byte|{
+            std.debug.print("{x:0>2} ", .{byte});
+        }
+        std.debug.print("\n", .{});
+    }
+}
+
 pub fn displayOne(data : [4]u8) void{
     for(data) |byte|{
         std.debug.print("{x:0>2}", .{byte});
@@ -178,11 +187,11 @@ pub fn expandKey(data : []const u8) [44][4]u8{
 }
 
 // 72686538326b6438687269757339646e -> rhe82kd8hrius9dn
-// pub fn main() void{
-//     // const key : []const u8 = "1212121212121212";
+pub fn main() void{
+    // const key : []const u8 = "1212121212121212";
     
-//     displayWord(expandKey("1212121212121212"));
-// }
+    displayWord(expandKey("1212121212121212"));
+}
 
 
 
