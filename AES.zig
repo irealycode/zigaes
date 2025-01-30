@@ -170,13 +170,24 @@ pub fn aesDecrypt(eText : [][16]u8,key : []const u8) ![]u8{
     return dc.aesDecrypt(eText,key);
 }
 
+pub fn asString(s : [][16]u8) ![]u8{
+    const allocc = std.heap.page_allocator;
+    var r : []u8 = try allocc.alloc(u8,s.len*16);
+    var i : usize = 0;
+    for(0..r.len) |y|{
+        if(i%16 == 0) i = 0;
+        r[y] = s[y/16][i];
+        i += 1;
+    }
+    return r;
+}
 
 pub fn main() !void {
-    const pt : []const u8  =  "2121212121212121";
+    const pt : []const u8  =  "2121212121212121ok";
     const key : []const u8  = "rhe82kd8hrius9dn";
     const enc = try aesEncrypt(pt,key);
     for(enc) |e|{
         displayOne(e);
     }
-    // ks.displayMatrix(getKeyByRow(expandedKey,0));
+    std.debug.print("{x}\n",.{try asString(enc)});
 }
