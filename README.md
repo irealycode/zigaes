@@ -16,13 +16,19 @@ The goal of this project is to:
 - **Sub-Algorithms**: Includes all algorithms and utilities needed for the EAS encryption (e.g., key scheduling, side-ways shifting, etc.).
 - **Written in Zig**: Utilizing the Zig programming language to ensure efficient and reliable cryptographic operations.
 
+## Present day
+
+- **AES-128** ✔
+- **AES-192** ✔ _but with 16-bits key repetition_
+- **AES-256** ✔ _but with 16-bits key repetition_
+
 ## Tests
 ### Encryption
 ```zig
 const aes = @import("AES.zig");
 const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
 const key : []const u8  = "rhe82kd8hrius9dn";
-const enc = try aes.aesEncrypt(pt,key); // -> ![][16]u8
+const enc = try aes.aesEncrypt(pt,key,128); // -> ![][16]u8
 const str = try aes.asString(enc); // -> ![]u8
 ```
 **returns**
@@ -37,7 +43,7 @@ HEX
 const aes = @import("AES.zig");
 const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
 const key : []const u8  = "rhe82kd8hrius9dn";
-const enc = try aes.aesEncrypt(pt,key);
+const enc = try aes.aesEncrypt(pt,key,128); 
 const dec = try aes.aesDecrypt(enc,key); // -> ![]u8
 ```
 **returns**

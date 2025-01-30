@@ -118,7 +118,7 @@ pub fn xorWords(data : [4]u8,second : [4]u8) [4]u8{
     return r;
 }
 
-pub fn displayKey(data : [44][4]u8) void{
+pub fn displayKey(data : [][4]u8) void{
     std.debug.print("expanded key: ",.{});
     for(data,0..) |bytes,i| {
         if (i%4 == 0) std.debug.print("\n",.{});
@@ -147,31 +147,54 @@ pub fn displayOne(data : [4]u8) void{
     std.debug.print("\n",.{});
 }
 
-pub fn assembleWord(data : [4][4]u8) [44][4]u8{
-    var full_word : [44][4]u8 = undefined;
-    for(0..4) |i|{
-        full_word[i] = data[i];
+fn endByType(rounds : usize) u8{
+    return switch (rounds) {
+        11 => 4,
+        13 => 6,
+        15 => 8,
+        else => 0,
+    };
+}
+
+pub fn assembleWord(data : [4][4]u8,rounds : usize) ![][4]u8{
+    const allocc = std.heap.page_allocator;
+    var full_word : [][4]u8 = try allocc.alloc([4]u8,rounds*4);
+    const end = endByType(rounds);
+    var y : u8 = 0;
+    for(0..end) |i|{
+        if (y%4 == 0) y = 0;
+        full_word[i] = data[y];
+        y += 1;
     }
-    for(4..44) |i|{
-        if((i % 4) == 0){
-            full_word[i] = xorWords(xorWords(subWord(rotWord(full_word[i - 1],1)),[4]u8{rCon(@intCast(i / 4)), 0x00, 0x00, 0x00}),full_word[i - 4]);
+    for(end..rounds*4) |i|{
+        if( end == 8 and (i % 8) == 0){
+            full_word[i] = xorWords(xorWords(subWord(rotWord(full_word[i - 1],1)),[4]u8{rCon(@intCast(i / end)), 0x00, 0x00, 0x00}),full_word[i - end]);
+        }else if(end == 8 and (i % 4) == 0){
+            full_word[i] = xorWords(subWord(full_word[i - 1]),full_word[i - end]);
+        }else if((i % end) == 0){
+            full_word[i] = xorWords(xorWords(subWord(rotWord(full_word[i - 1],1)),[4]u8{rCon(@intCast(i / end)), 0x00, 0x00, 0x00}),full_word[i - end]);
         }
         else{
-            full_word[i] = xorWords(full_word[i - 1],full_word[i - 4]);
+            full_word[i] = xorWords(full_word[i - 1],full_word[i - end]);
         } 
     }
     return full_word;
 }
 
-pub fn expandKey(data : []const u8) [44][4]u8{
-    return assembleWord(devideKey(data));
+pub fn expandKey(data : []const u8,rounds : usize) ![][4]u8{
+    return try assembleWord(devideKey(data),rounds + 1);
 }
 
 // 72686538326b6438687269757339646e -> rhe82kd8hrius9dn
-pub fn main() void{
-    // const key : []const u8 = "1212121212121212";
+pub fn main() !void{
+    const key : []const u8 = "rhe82kd8hrius9dn";
+    var k : [8]u8 = undefined;
     
-    displayKey(expandKey("rhe82kd8hrius9dn"));
+    displayKey(try expandKey("rhe82kd8hrius9dn",14));
+    for(0..8) |i|{
+        k[i] = key[i/(8/4)];
+    }
+    std.debug.print("{x}\n",.{k});
 }
 
 

@@ -66,7 +66,7 @@ pub fn matixDeConvert(data : [4][4]u8) [16]u8{
     return r;
 }
 
-pub fn getKeyByRow(data : [44][4]u8,row : usize) [4][4]u8{ // row 0 -> 10
+pub fn getKeyByRow(data : [][4]u8,row : usize) [4][4]u8{ // row 0 -> 10
     var r : [4][4]u8 = undefined;
     for (row*4..(row*4 + 4),0..) |i,y|{
         r[y] = data[i];
@@ -84,7 +84,7 @@ pub fn xorMatrix(data : [4][4]u8,second : [4][4]u8) [4][4]u8{
     return xored;
 }
 
-pub fn addRoundKey(wordByte : [4][4]u8,key : [44][4]u8,round:usize) [4][4]u8{ // round 0 -> 10
+pub fn addRoundKey(wordByte : [4][4]u8,key : [][4]u8,round:usize) [4][4]u8{ // round aes-128 0 -> 10
     return xorMatrix(wordByte,getKeyByRow(key,round));
 }
 
@@ -130,9 +130,9 @@ pub fn shiftRows(data: [4][4]u8) [4][4]u8{
     return transMatrix(r);
 }
 
-pub fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
+pub fn mainRounds(roundedText : [4][4]u8,key : [][4]u8,rounds : usize) [4][4]u8{
     var r : [4][4]u8 = roundedText;
-    for(1..10) |i| {
+    for(1..rounds) |i| {
         r = ks.subMatrix(r);
         r = shiftRows(r);
         r = mixColumns(r);
@@ -143,25 +143,35 @@ pub fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
     return r;
 }
 
-pub fn finalRound(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
+pub fn finalRound(roundedText : [4][4]u8,key : [][4]u8,fround : usize) [4][4]u8{
     var r : [4][4]u8 = roundedText;
     r = ks.subMatrix(r);
     r = shiftRows(r);
-    r = addRoundKey(r,key,10);
+    r = addRoundKey(r,key,fround);
     // std.debug.print("round {d}:\n",.{10});
     // ks.displayMatrix(r);
     return r;
 }
 
-pub fn aesEncrypt(pt : []const u8,key : []const u8) ![][16]u8{
+fn getRounds(lvl : u16) u8{
+    return switch (lvl) {
+        128 => 10,
+        192 => 12,
+        256 => 14,
+        else => 0
+    };
+}
+
+pub fn aesEncrypt(pt : []const u8,key : []const u8,lvl : u16) ![][16]u8{
     const allocc = std.heap.page_allocator;
-    const expandedKey =  ks.expandKey(key);
+    const rounds = getRounds(lvl);
+    const expandedKey = try ks.expandKey(key,rounds);
     const devidedText = try devideText(pt);
     var encrypted = try allocc.alloc([16]u8,devidedText.len);
     for(devidedText,0..) |text,i|{
         const rk = addRoundKey(matixConvert(text),expandedKey,0);
-        const mainRounds = rounds(rk,expandedKey);
-        encrypted[i] = matixDeConvert(finalRound(mainRounds,expandedKey));
+        const mrs = mainRounds(rk,expandedKey,rounds);
+        encrypted[i] = matixDeConvert(finalRound(mrs,expandedKey,rounds));
     }
     return encrypted;
 }
@@ -182,12 +192,15 @@ pub fn asString(s : [][16]u8) ![]u8{
     return r;
 }
 
+// 2121212121212121
 pub fn main() !void {
-    const pt : []const u8  =  "2121212121212121ok";
+    const pt : []const u8  =  "2121212121212121";
     const key : []const u8  = "rhe82kd8hrius9dn";
-    const enc = try aesEncrypt(pt,key);
+    const enc = try aesEncrypt(pt,key,192);
     for(enc) |e|{
         displayOne(e);
     }
-    std.debug.print("{x}\n",.{try asString(enc)});
+    // std.debug.print("{x}\n",.{try asString(enc)});
+
+    
 }
