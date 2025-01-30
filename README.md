@@ -43,8 +43,8 @@ HEX
 const aes = @import("AES.zig");
 const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
 const key : []const u8  = "rhe82kd8hrius9dn";
-const enc = try aes.aesEncrypt(pt,key,128); 
-const dec = try aes.aesDecrypt(enc,key); // -> ![]u8
+const enc = try aes.aesEncrypt(pt,key,256); 
+const dec = try aes.aesDecrypt(enc,key,256); // -> ![]u8
 ```
 **returns**
 ```

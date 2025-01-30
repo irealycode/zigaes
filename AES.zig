@@ -153,7 +153,7 @@ pub fn finalRound(roundedText : [4][4]u8,key : [][4]u8,fround : usize) [4][4]u8{
     return r;
 }
 
-fn getRounds(lvl : u16) u8{
+pub fn getRounds(lvl : u16) u8{
     return switch (lvl) {
         128 => 10,
         192 => 12,
@@ -176,8 +176,8 @@ pub fn aesEncrypt(pt : []const u8,key : []const u8,lvl : u16) ![][16]u8{
     return encrypted;
 }
 
-pub fn aesDecrypt(eText : [][16]u8,key : []const u8) ![]u8{
-    return dc.aesDecrypt(eText,key);
+pub fn aesDecrypt(eText : [][16]u8,key : []const u8,lvl : u16) ![]u8{
+    return dc.aesDecrypt(eText,key,lvl);
 }
 
 pub fn asString(s : [][16]u8) ![]u8{
@@ -187,6 +187,18 @@ pub fn asString(s : [][16]u8) ![]u8{
     for(0..r.len) |y|{
         if(i%16 == 0) i = 0;
         r[y] = s[y/16][i];
+        i += 1;
+    }
+    return r;
+}
+
+pub fn asNotString(s : []u8) ![][16]u8{
+    const allocc = std.heap.page_allocator;
+    var r : [][16]u8 = try allocc.alloc([16]u8,s.len/16);
+    var i : usize = 0;
+    for(0..s.len) |y|{
+        if(i%16 == 0) i = 0;
+        r[y/16][i] = s[y];
         i += 1;
     }
     return r;

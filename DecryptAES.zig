@@ -89,9 +89,9 @@ pub fn invMixColumns(data : [4][4]u8) [4][4]u8{
     return aes.transMatrix(r);
 }
 
-pub fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
+pub fn mainRounds(roundedText : [4][4]u8,key : [][4]u8,rounds : usize) [4][4]u8{
     var r : [4][4]u8 = roundedText;
-    var i : u8 = 9;
+    var i : usize = rounds - 1;
     while(i>0) : (i -= 1) {
         const shift = invShiftRows(r);
         const sub = invSubMatrix(shift);
@@ -103,15 +103,17 @@ pub fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
     return aes.addRoundKey(sub,key,i);
 }
 
-pub fn aesDecrypt(eText : [][16]u8,key : []const u8) ![]u8{
+
+
+pub fn aesDecrypt(eText : [][16]u8,key : []const u8,lvl : u16) ![]u8{
     const allocc = std.heap.page_allocator;
-    
-    const expandedKey =  ks.expandKey(key);
+    const rounds = aes.getRounds(lvl);
+    const expandedKey =  try ks.expandKey(key,rounds);
     var dText : []u8 = try allocc.alloc(u8,eText.len*16);
     var i : usize = 0;
     for(eText) |e|{
-        const rk = aes.addRoundKey(aes.matixConvert(e),expandedKey,10);
-        const part = aes.matixDeConvert(rounds(rk,expandedKey));
+        const rk = aes.addRoundKey(aes.matixConvert(e),expandedKey,rounds);
+        const part = aes.matixDeConvert(mainRounds(rk,expandedKey,rounds));
         for(0..16) |y|{
             dText[i] = part[y];
             i += 1;
@@ -123,7 +125,7 @@ pub fn aesDecrypt(eText : [][16]u8,key : []const u8) ![]u8{
 pub fn main() !void{
     const pt : []const u8  =  "2121212121212121ok";
     const key : []const u8  = "rhe82kd8hrius9dn";
-    const eText = try aes.aesEncrypt(pt,key);
-    std.debug.print("{s}\n",.{try aesDecrypt(eText,key)});
+    const eText = try aes.aesEncrypt(pt,key,192);
+    std.debug.print("{s}\n",.{try aesDecrypt(eText,key,192)});
     // aesDecrypt(enc);
 }
