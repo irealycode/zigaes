@@ -23,6 +23,7 @@ const aes = @import("AES.zig");
 const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
 const key : []const u8  = "rhe82kd8hrius9dn";
 const enc = try aes.aesEncrypt(pt,key); // -> ![][16]u8
+const str = try aes.asString(enc); // -> ![]u8
 ```
 **returns**
 ```hex
