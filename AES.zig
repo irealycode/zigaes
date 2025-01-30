@@ -1,10 +1,11 @@
 const std = @import("std");
 const ks = @import("keySec.zig");
+const dc = @import("DecryptAES.zig");
 
 
 
 
-fn displayWord(data : [][16]u8) void{
+pub fn displayWord(data : [][16]u8) void{
     for(data) |bytes| {
         for(bytes,0..) |byte,y|{
             if (y%4 == 0) std.debug.print(" ",.{});
@@ -15,7 +16,7 @@ fn displayWord(data : [][16]u8) void{
     }
 }
 
-fn displayOne(data : [16]u8) void{
+pub fn displayOne(data : [16]u8) void{
     for(data) |byte|{
         std.debug.print("{x:0>2} ", .{byte});
     }
@@ -23,7 +24,7 @@ fn displayOne(data : [16]u8) void{
 }
 
 
-fn devideText(data : []const u8) ![][16]u8{
+pub fn devideText(data : []const u8) ![][16]u8{
     var l : usize = (data.len/16);
     if (data.len % 16 != 0) l +=1;
     const allocc = std.heap.page_allocator;
@@ -41,7 +42,7 @@ fn devideText(data : []const u8) ![][16]u8{
     return devided;
 }
 
-fn matixConvert(data : [16]u8) [4][4]u8{
+pub fn matixConvert(data : [16]u8) [4][4]u8{
     var r : [4][4]u8 = undefined;
     var l : usize = 0;
     for (0..4) |i|{
@@ -53,7 +54,7 @@ fn matixConvert(data : [16]u8) [4][4]u8{
     return r;
 }
 
-fn matixDeConvert(data : [4][4]u8) [16]u8{
+pub fn matixDeConvert(data : [4][4]u8) [16]u8{
     var r : [16]u8 = undefined;
     var l : usize = 0;
     for (0..4) |i|{
@@ -65,7 +66,7 @@ fn matixDeConvert(data : [4][4]u8) [16]u8{
     return r;
 }
 
-fn getKeyByRow(data : [44][4]u8,row : usize) [4][4]u8{ // row 0 -> 10
+pub fn getKeyByRow(data : [44][4]u8,row : usize) [4][4]u8{ // row 0 -> 10
     var r : [4][4]u8 = undefined;
     for (row*4..(row*4 + 4),0..) |i,y|{
         r[y] = data[i];
@@ -73,7 +74,7 @@ fn getKeyByRow(data : [44][4]u8,row : usize) [4][4]u8{ // row 0 -> 10
     return r;
 }
 
-fn xorMatrix(data : [4][4]u8,second : [4][4]u8) [4][4]u8{
+pub fn xorMatrix(data : [4][4]u8,second : [4][4]u8) [4][4]u8{
     var xored : [4][4]u8 = undefined;
     for(0..4) |i|{
         for(0..4) |y|{
@@ -83,11 +84,11 @@ fn xorMatrix(data : [4][4]u8,second : [4][4]u8) [4][4]u8{
     return xored;
 }
 
-fn addRoundKey(wordByte : [4][4]u8,key : [44][4]u8,round:usize) [4][4]u8{ // round 0 -> 10
+pub fn addRoundKey(wordByte : [4][4]u8,key : [44][4]u8,round:usize) [4][4]u8{ // round 0 -> 10
     return xorMatrix(wordByte,getKeyByRow(key,round));
 }
 
-fn gMul(data : u8,g : u8) u8{
+pub fn gMul(data : u8,g : u8) u8{
     if(g == 0x02){
         var mul : u16 = @as(u16,data) << 1;
         if (mul >= 0x100) mul = (mul ^ 0x1b) & 0xff;
@@ -99,7 +100,7 @@ fn gMul(data : u8,g : u8) u8{
 }
 
 
-fn mixColumns(data : [4][4]u8) [4][4]u8{
+pub fn mixColumns(data : [4][4]u8) [4][4]u8{
     
     var r : [4][4]u8 = undefined;
     for(0..4) |i|{
@@ -111,7 +112,7 @@ fn mixColumns(data : [4][4]u8) [4][4]u8{
     return transMatrix(r);
 }
 
-fn transMatrix(data: [4][4]u8) [4][4]u8{
+pub fn transMatrix(data: [4][4]u8) [4][4]u8{
     var r : [4][4]u8 = undefined;
     for(0..4) |i|{
         for(0..4) |y|{
@@ -121,7 +122,7 @@ fn transMatrix(data: [4][4]u8) [4][4]u8{
     return r;
 }
 
-fn shiftRows(data: [4][4]u8) [4][4]u8{
+pub fn shiftRows(data: [4][4]u8) [4][4]u8{
     var r : [4][4]u8 = transMatrix(data);
     for(0..4) |y|{
         r[y] = ks.rotWord(r[y],y);
@@ -129,7 +130,7 @@ fn shiftRows(data: [4][4]u8) [4][4]u8{
     return transMatrix(r);
 }
 
-fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
+pub fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
     var r : [4][4]u8 = roundedText;
     for(1..10) |i| {
         r = ks.subMatrix(r);
@@ -142,7 +143,7 @@ fn rounds(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
     return r;
 }
 
-fn finalRound(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
+pub fn finalRound(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
     var r : [4][4]u8 = roundedText;
     r = ks.subMatrix(r);
     r = shiftRows(r);
@@ -151,9 +152,6 @@ fn finalRound(roundedText : [4][4]u8,key : [44][4]u8) [4][4]u8{
     // ks.displayMatrix(r);
     return r;
 }
-
-
-
 
 pub fn aesEncrypt(pt : []const u8,key : []const u8) ![][16]u8{
     const allocc = std.heap.page_allocator;
@@ -168,8 +166,13 @@ pub fn aesEncrypt(pt : []const u8,key : []const u8) ![][16]u8{
     return encrypted;
 }
 
+pub fn aesDecrypt(eText : [][16]u8,key : []const u8) ![]u8{
+    return dc.aesDecrypt(eText,key);
+}
+
+
 pub fn main() !void {
-    const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
+    const pt : []const u8  =  "2121212121212121";
     const key : []const u8  = "rhe82kd8hrius9dn";
     const enc = try aesEncrypt(pt,key);
     for(enc) |e|{

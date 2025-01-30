@@ -1,5 +1,5 @@
 const aes = @import("AES.zig");
-
+const std = @import("std");
 
 pub fn main() !void{
     const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
@@ -8,4 +8,6 @@ pub fn main() !void{
     for(enc) |e|{
         aes.displayOne(e);
     }
+    const dec = try aes.aesDecrypt(enc,key);
+    std.debug.print("result: {s}\n",.{dec});
 }
