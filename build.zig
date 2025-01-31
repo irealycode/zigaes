@@ -9,6 +9,6 @@ pub fn build(b: *Builder) void {
         .optimize = b.standardOptimizeOption(.{}),
     });
 
-    // b.installArtifact(lib);
-    lib.install();
+    b.installArtifact(lib);
+    // lib.install();
 }
