@@ -25,7 +25,7 @@ The goal of this project is to:
 ## Tests
 ### Encryption
 ```zig
-const aes = @import("AES.zig");
+const aes = @import("zigaes");
 const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
 const key : []const u8  = "rhe82kd8hrius9dn";
 const enc = try aes.aesEncrypt(pt,key,128); // -> ![][16]u8
@@ -40,7 +40,7 @@ HEX
 ### Decryption
 
 ```zig
-const aes = @import("AES.zig");
+const aes = @import("zigaes");
 const pt : []const u8  =  "thisIsPlainTextToTestThisThing10";
 const key : []const u8  = "rhe82kd8hrius9dn";
 const enc = try aes.aesEncrypt(pt,key,256); 
@@ -50,4 +50,22 @@ const dec = try aes.aesDecrypt(enc,key,256); // -> ![]u8
 ```
 STRING
 "thisIsPlainTextToTestThisThing10"
+```
+
+## Importing Dependency
+
+```
+$ zig fetch --save https://github.com/irealycode/zigaes/archive/refs/tags/v0.1.0.tar.gz
+```
+**in** `build.zig`
+```zig
+const zigaes = b.dependency("zigaes", .{
+        .target = target,
+        .optimize = optimize,
+    }).module("zigaes");
+exe.root_module.addImport("zigaes", zigaes);
+```
+_**now you can import it !!**_
+```zig
+const aes = @import("zigaes");
 ```
