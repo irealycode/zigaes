@@ -19,8 +19,26 @@ The goal of this project is to:
 ## Present day
 
 - **AES-128** ✔
-- **AES-192** ✔ _but with 16-bits key repetition_
-- **AES-256** ✔ _but with 16-bits key repetition_
+- **AES-192** ✔ _but with 16-bits key duplication_
+- **AES-256** ✔ _but with 16-bits key duplication_
+
+## Importing Dependency
+
+```
+$ zig fetch --save https://github.com/irealycode/zigaes/archive/refs/tags/v0.1.0.tar.gz
+```
+**in** `build.zig`
+```zig
+const zigaes = b.dependency("zigaes", .{
+        .target = target,
+        .optimize = optimize,
+    }).module("zigaes");
+exe.root_module.addImport("zigaes", zigaes);
+```
+_**now you can import it !!**_
+```zig
+const aes = @import("zigaes");
+```
 
 ## Tests
 ### Encryption
@@ -52,20 +70,3 @@ STRING
 "thisIsPlainTextToTestThisThing10"
 ```
 
-## Importing Dependency
-
-```
-$ zig fetch --save https://github.com/irealycode/zigaes/archive/refs/tags/v0.1.0.tar.gz
-```
-**in** `build.zig`
-```zig
-const zigaes = b.dependency("zigaes", .{
-        .target = target,
-        .optimize = optimize,
-    }).module("zigaes");
-exe.root_module.addImport("zigaes", zigaes);
-```
-_**now you can import it !!**_
-```zig
-const aes = @import("zigaes");
-```
